@@ -19,7 +19,4 @@ Build a Volatility Comparison Dashboard for HSI, S&P 500, and Nasdaq.
 - HSI vs S&P 500 volatility comparison
 - Rolling 30-day HSI volatility chart
 
-## GitHub Value
-
-GitHub-able. Stronger than Day 1 because it compares markets and introduces practical risk sizing.
 
