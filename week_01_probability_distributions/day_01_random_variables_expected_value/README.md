@@ -19,7 +19,4 @@ Build an HSI Return Expectations Calculator.
 - Probability of positive and negative days
 - Histogram of daily returns with expected value marked
 
-## GitHub Value
-
-GitHub-able as a starter project. Best used as the first chapter in the 30-day series.
 
