@@ -11,6 +11,7 @@ This week starts with random variables, expected value, volatility, and normal d
 - Day 1: Random Variables & Expected Value
 - Day 2: Variance, Volatility & Why They Matter
 - Day 3: Normal Distribution & The Bell Curve Assumption
+- Day 4: Fat Tails & Why Normal Distribution Fails Markets
 
 Future days will be added after completion.
 
