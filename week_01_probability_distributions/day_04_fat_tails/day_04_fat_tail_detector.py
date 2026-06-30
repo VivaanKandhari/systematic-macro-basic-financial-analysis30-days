@@ -1,49 +1,18 @@
-# Day 4: Fat Tails & Why Normal Distribution Fails Markets
-# Mini-project: Fat Tail Detector
-#
-# Research question:
-# Do HSI and S&P 500 daily returns produce more 3-sigma events than a normal
-# distribution predicts?
-#
-# Summary:
-# This program compares actual extreme return days against the number of
-# extreme days predicted by a fitted normal distribution.
-#
-# Conclusion to look for:
-# If actual 3-sigma days are much higher than expected normal-model 3-sigma days,
-# the market has fat tails. Extreme events happen more often than the naive
-# bell curve suggests.
-
-from pathlib import Path
-import sys
-
-import matplotlib.pyplot as plt
-import pandas as pd
 import yfinance as yf
-from scipy.stats import kurtosis, norm, probplot
+import pandas as pd
+from scipy.stats import kurtosis, norm
+from pathlib import Path
 from tabulate import tabulate
 
-try:
-    from IPython.display import display, HTML
-except ImportError:
-    display = None
-
-
-TICKERS = {
+tickers = {
     "HSI": "^HSI",
     "S&P 500": "^GSPC",
 }
 
-PERIOD = "5y"
-SIGMA_THRESHOLD = 3
-OUTPUT_DIR = Path(__file__).resolve().parent / "outputs"
-
-
 data = yf.download(
-    list(TICKERS.values()),
-    period=PERIOD,
-    auto_adjust=True,
-    progress=False
+    list(tickers.values()),
+    period="5y",
+    auto_adjust=True
 )
 
 prices = data["Close"]
@@ -54,15 +23,7 @@ reverse_names = {
 }
 
 prices = prices.rename(columns=reverse_names)
-
-# Handle pandas version compatibility for pct_change
-# pandas < 2.0 uses fill_method parameter
-# pandas >= 2.0 deprecated fill_method
-try:
-    returns = prices.pct_change(fill_method=None).dropna()
-except TypeError:
-    # pandas >= 2.0
-    returns = prices.pct_change().dropna()
+returns = prices.pct_change().dropna()
 
 results = []
 
@@ -72,22 +33,17 @@ for asset in returns.columns:
     mean = r.mean()
     std = r.std()
 
+    # scipy kurtosis with fisher=False gives normal distribution kurtosis = 3
     raw_kurtosis = kurtosis(r, fisher=False)
     excess_kurtosis = kurtosis(r, fisher=True)
 
-    upper_3sigma = mean + SIGMA_THRESHOLD * std
-    lower_3sigma = mean - SIGMA_THRESHOLD * std
+    upper_3sigma = mean + 3 * std
+    lower_3sigma = mean - 3 * std
 
-    extreme_days = (r > upper_3sigma) | (r < lower_3sigma)
+    actual_3sigma_days = ((r > upper_3sigma) | (r < lower_3sigma)).sum()
+    actual_3sigma_frequency = ((r > upper_3sigma) | (r < lower_3sigma)).mean()
 
-    actual_3sigma_days = extreme_days.sum()
-    actual_3sigma_frequency = extreme_days.mean()
-
-    # A standard normal distribution has equal left and right tails.
-    # 1 - norm.cdf(3) is the probability of being above +3 sigma.
-    # Multiplying by 2 counts both tails: below -3 sigma and above +3 sigma.
-    normal_3sigma_frequency = 2 * (1 - norm.cdf(SIGMA_THRESHOLD))
-
+    normal_3sigma_frequency = 2 * (1 - norm.cdf(3))
     expected_3sigma_days = normal_3sigma_frequency * len(r)
 
     danger_ratio = actual_3sigma_days / expected_3sigma_days
@@ -105,7 +61,7 @@ for asset in returns.columns:
 
 results_df = pd.DataFrame(results)
 
-# Create clean display table
+# Create clean display table with tabulate
 display_data = []
 for _, row in results_df.iterrows():
     display_data.append([
@@ -122,7 +78,7 @@ for _, row in results_df.iterrows():
 headers = [
     "Asset",
     "Kurtosis",
-    "Excess Kurt",
+    "Excess Kurtosis",
     "Actual 3σ Days",
     "Expected 3σ Days",
     "Actual Freq",
@@ -130,15 +86,15 @@ headers = [
     "Danger Ratio"
 ]
 
-print("\n" + "="*100)
+print("\n" + "="*110)
 print("FAT TAIL DETECTOR: Do Markets Have Fatter Tails Than Normal Distribution Predicts?")
-print("="*100 + "\n")
+print("="*110 + "\n")
 
 print(tabulate(display_data, headers=headers, tablefmt="grid"))
 
-print("\n" + "="*100)
+print("\n" + "="*110)
 print("INTERPRETATION")
-print("="*100 + "\n")
+print("="*110 + "\n")
 
 for _, row in results_df.iterrows():
     asset = row["Asset"]
@@ -152,9 +108,9 @@ for _, row in results_df.iterrows():
     print(f"  • Reality vs. Normal:      {danger:.1f}x MORE dangerous than expected")
     print()
 
-print("="*100)
+print("="*110)
 print("CONCLUSION")
-print("="*100)
+print("="*110)
 print("""
 Markets exhibit FAT TAILS. Extreme moves happen much more frequently than
 a normal distribution would predict. This means:
@@ -163,10 +119,14 @@ a normal distribution would predict. This means:
 ✓ Leverage and oversized positions are riskier than naive statistics suggest
 ✓ Quant strategies must account for tail events and correlation breakdowns
 """)
-print("="*100 + "\n")
+print("="*110 + "\n")
 
 # Generate visualization
+OUTPUT_DIR = Path(__file__).resolve().parent / "outputs"
 OUTPUT_DIR.mkdir(exist_ok=True)
+
+import matplotlib.pyplot as plt
+from scipy.stats import probplot
 
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
@@ -180,12 +140,3 @@ plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "qq_plots_vs_normal.png", dpi=150, bbox_inches="tight")
 print(f"✓ Chart saved to: {OUTPUT_DIR / 'qq_plots_vs_normal.png'}")
 plt.show()
-
-# Final interpretation:
-# A straight QQ-plot line would suggest normally distributed returns.
-# When the tail points bend away from the line, the market has more extreme
-# observations than the normal model expects.
-
-# Macro quant takeaway:
-# Do not rely blindly on normal-distribution risk models. They often underestimate
-# crash risk, which can lead to oversized positions and excessive leverage.
