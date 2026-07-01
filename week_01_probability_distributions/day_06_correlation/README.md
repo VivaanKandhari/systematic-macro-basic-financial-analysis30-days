@@ -1,83 +1,87 @@
-# Day 6: Correlation - The Most Important Stat in Macro
+# Day 6 — Correlation: The Most Important Stat in Macro
 
-## Concept
+## Overview
 
-Correlation measures how two return series move together. A correlation near `+1` means they usually move in the same direction, near `-1` means they usually move in opposite directions, and near `0` means there is little linear relationship.
+Correlation measures how two return series move together. Values near `+1` indicate the series tend to move in the same direction, values near `-1` indicate they tend to move in opposite directions, and values near `0` indicate little linear relationship. In macro research, correlation is central to understanding diversification, crisis behaviour, and risk concentration.
 
-The key macro lesson is that correlation is not fixed. Two assets can look weakly related over a full sample, but become much more connected during certain regimes.
+## Why it matters (Market connection)
 
-## Market Connection
+Macro investors rely on correlations to:
 
-Macro investors use correlation to understand diversification, risk concentration, and crisis behavior.
+- Build diversified portfolios and identify hidden risk concentrations.
+- Monitor how relationships between assets change during stress events (e.g., crashes).
+- Inform hedging and allocation decisions: an asset that looks uncorrelated in calm markets may become highly correlated in crises.
 
-A portfolio that looks diversified in calm markets can become much less diversified when correlations rise during stress. This is why macro researchers look at both:
+A small change in correlations can produce large changes in portfolio risk, so tracking them through time matters.
 
-- full-sample correlation
-- rolling correlation through time
+## Mini‑project
 
-Full-sample correlation answers:
+This folder contains `day_06_macro_correlation_dashboard.py`, a self-contained script that builds a compact macro correlation dashboard for a set of core assets:
 
-```text
-How did these assets move together on average?
-Rolling correlation answers:
-Did the relationship change across regimes?
-Projects
-Day 6 now has two separate projects.
-Project 1: Macro Correlation Dashboard
-day_06_macro_correlation_dashboard.py builds a broad macro correlation dashboard for:
-HSI
-S&P 500
-US 10Y Yield
-Gold
-USD/CNH
-Oil
-The script:
-downloads real market data with yfinance
-calculates daily returns
-prints a clean data coverage table
-prints the full correlation matrix
-saves a correlation heatmap
-Use this project to answer:
-Which macro assets move together?
-Which assets have weak relationships?
-Which assets may diversify HSI exposure?
-Does HSI behave more like a global equity asset or a local/China-driven market?
-Project 2: Rolling Correlation Study
-day_06_rolling_correlation.py focuses specifically on the rolling 60-day correlation between:
-HSI
-S&P 500
-The script:
-downloads HSI and S&P 500 data
-converts prices into daily returns
-calculates 60-day rolling correlation
-plots how the relationship changes through time
-marks important stress periods where relevant
-Use this project to answer:
-Is HSI/S&P 500 correlation stable?
-When did the two markets become more synchronized?
-Did correlation rise during stress periods?
-When did local Hong Kong/China factors dominate global equity sentiment?
-Run
-Run the full macro correlation dashboard:
+- Hang Seng Index (HSI)
+- S&P 500
+- US 10Y Yield
+- Gold
+- USD/CNH
+- Oil
+
+What the script does:
+
+- Fetches historical prices/levels for each asset (see the script for exact sources).
+- Computes returns and reports data coverage per series.
+- Builds a correlation matrix for a chosen sample period.
+- Saves a heatmap image of the correlation matrix.
+- Plots a rolling 60‑day correlation series (example: HSI vs S&P 500).
+- Prints clean tables to the console for quick inspection.
+
+Files in this folder:
+
+- `day_06_macro_correlation_dashboard.py` — main script
+
+## Run
+
+From the repository root run:
+
+```bash
 python week_01_probability_distributions/day_06_correlation/day_06_macro_correlation_dashboard.py
-Run the separate rolling correlation project:
+```
+
+To run the rolling study only:
+
+```bash
 python week_01_probability_distributions/day_06_correlation/day_06_rolling_correlation.py
-Interpretation
-From the correlation matrix, focus on the size and sign of each relationship:
-+0.70 to +1.00   strong positive relationship
-+0.30 to +0.70   moderate positive relationship
--0.30 to +0.30   weak or little linear relationship
--0.70 to -0.30   moderate negative relationship
--1.00 to -0.70   strong negative relationship
-From the rolling correlation chart, focus on whether the relationship changes over time.
-A rising HSI/S&P 500 rolling correlation means:
-Hong Kong equities and US equities are becoming more synchronized.
-A falling or near-zero correlation means:
-HSI is behaving more independently from US equities.
-A negative rolling correlation means:
-HSI and S&P 500 tended to move in opposite directions during that window.
-Key Takeaway
-Average correlation can hide regime changes.
-A low full-sample HSI/S&P 500 correlation does not guarantee diversification. If rolling correlation rises during stress, the assets may become connected exactly when diversification is most needed.
-The macro quant lesson:
-Correlation is not a constant. It is a market regime variable
+```
+
+If you prefer to run interactively, open the script in a notebook and run the cells step by step.
+
+## Output
+
+The script prints coverage and correlation tables to the console and saves visual outputs (heatmap and rolling correlation plot) to the working directory. Check the script header for exact output filenames.
+
+## Interpretation / Research questions
+
+Use the dashboard to explore questions such as:
+
+- Which macro assets tend to move together, and which provide diversification?
+- Which assets help diversify HSI exposure?
+- How did HSI–S&P 500 correlation evolve during the COVID‑19 crash (or other crisis periods)?
+- Do correlations increase during stress periods, and how quickly?
+
+## Quick reference: correlation strength
+
+- +0.70 to +1.00 — strong positive relationship
+- +0.30 to +0.70 — moderate positive relationship
+- -0.30 to +0.30 — weak or little linear relationship
+- -0.70 to -0.30 — moderate negative relationship
+- -1.00 to -0.70 — strong negative relationship
+
+## Next steps / experiments
+
+- Try different rolling window lengths (30, 60, 120 days) to test sensitivity.
+- Subsample by regime (pre‑crisis, crisis, post‑crisis) and compare cross‑sectional correlations.
+- Expand the asset list to include currencies, global bond indices, or volatility measures.
+- Add statistical tests or significance bands to rolling correlation plots.
+
+---
+
+If you'd like, I can also tidy the scripts in this folder (improve docstrings, add argparse, or include direct data source checks). Reply with the change you'd like and I'll update the code.
