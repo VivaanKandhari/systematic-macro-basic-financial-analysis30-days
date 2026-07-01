@@ -22,5 +22,6 @@ pip install -r requirements.txt
 - [x] Day 4: Fat Tails & Why Normal Distribution Fails Markets
 - [x] Day 5: Skewness & Asymmetric Returns
 - [x] Day 6: Correlation - The Most Important Stat in Macro
+- [x] Day 7: Week 1 Capstone - Distribution Profile of Hong Kong Markets
 
 Future days will be added after each lesson is completed.
