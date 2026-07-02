@@ -203,6 +203,11 @@ def main() -> None:
     difference, p_value, cohens_d = run_january_effect_test(returns)
     print_signal_strength_verdict(difference, p_value, cohens_d)
 
+#Analysis:
+#HSI’s estimated mean daily return is highly uncertain, with a 95% confidence interval that includes zero. 
+#January returns were higher than other months by 0.1529% per day, which is larger than the assumed transaction cost, but the effect was not statistically significant (p = 0.1039) and had a small effect size (Cohen’s d = 0.1107).
+#Therefore, the January effect is interesting but not reliable enough to trade based on this test alone.
+
 
 if __name__ == "__main__":
     main()
