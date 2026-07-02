@@ -11,4 +11,4 @@ Is this pattern statistically reliable, economically meaningful, and robust enou
 ## Days
 
 - [x] Day 8: Hypothesis Testing - Is This Pattern Real?
-
+- [x] Day 9: Confidence Intervals & Effect Size

@@ -24,5 +24,6 @@ pip install -r requirements.txt
 - [x] Day 6: Correlation - The Most Important Stat in Macro
 - [x] Day 7: Week 1 Capstone - Distribution Profile of Hong Kong Markets
 - [x] Day 8: Hypothesis Testing - Is This Pattern Real?
+- [x] Day 9: Confidence Intervals & Effect Size
 
 Future days will be added after each lesson is completed.
