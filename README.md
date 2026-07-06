@@ -25,6 +25,7 @@ pip install -r requirements.txt
 - [x] Day 7: Week 1 Capstone - Distribution Profile of Hong Kong Markets
 - [x] Day 8: Hypothesis Testing - Is This Pattern Real?
 - [x] Day 9: Confidence Intervals & Effect Size
-- [X] Day 10: Linear Regression
+- [x] Day 10: Linear Regression - The Workhorse of Quant Finance
+- [x] Day 11: Multiple Regression & Multicollinearity
 
 Future days will be added after each lesson is completed.
