@@ -27,5 +27,6 @@ pip install -r requirements.txt
 - [x] Day 9: Confidence Intervals & Effect Size
 - [x] Day 10: Linear Regression - The Workhorse of Quant Finance
 - [x] Day 11: Multiple Regression & Multicollinearity
+- [x] Day 12: The Multiple Testing Problem
 
 Future days will be added after each lesson is completed.
