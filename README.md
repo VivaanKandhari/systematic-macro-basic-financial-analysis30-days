@@ -29,5 +29,7 @@ pip install -r requirements.txt
 - [x] Day 11: Multiple Regression & Multicollinearity
 - [x] Day 12: The Multiple Testing Problem
 - [x] Day 13: Overfitting - The Most Dangerous Concept in Finance
+- [ ] Day 14: Week 2 Capstone - Signal Validation Framework
+- [x] Day 15: Stationarity - The Foundation of Time Series
 
 Future days will be added after each lesson is completed.
