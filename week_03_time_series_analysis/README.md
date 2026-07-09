@@ -6,3 +6,4 @@ Core idea: financial data is sequential. The order of observations matters becau
 
 - Day 15: Stationarity - The Foundation of Time Series
 - Day 16: Autocorrelation - Does the Past Predict the Future?
+- Day 17: Moving Averages & Trend Following

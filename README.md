@@ -32,5 +32,6 @@ pip install -r requirements.txt
 - [x] Day 14: Week 2 Capstone - Signal Validation Framework
 - [x] Day 15: Stationarity - The Foundation of Time Series
 - [x] Day 16: Autocorrelation - Does the Past Predict the Future?
+- [x] Day 17: Moving Averages & Trend Following
 
 Future days will be added after each lesson is completed.
