@@ -1,4 +1,4 @@
-# (BEGINNER - VERY BASIC FOUNDATION) 30-Day Systematic Macro Quant  Research Series
+# (BEGINNER - VERY BASIC FOUNDATION) 30-Day Systematic Macro Basic Financial Analysis Research Series
 
 A 30-day systematic macro quant learning series which I am doing (learning myself), built around real financial market data, Python, and research-style mini-projects.
 
