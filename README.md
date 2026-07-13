@@ -1,6 +1,6 @@
 # (BEGINNER - VERY BASIC FOUNDATION) 30-Day Systematic Macro Basic Financial Analysis Research Series
 
-A 30-day systematic macro quant learning series which I am doing (learning myself), built around real financial market data, Python, and research-style mini-projects.
+A 30-day systematic macro basic financial analysis learning series which I am doing (learning myself), built around real financial market data, Python, and research-style mini-projects.
 
 The series covers probability, distributions, statistical inference, time series analysis, and a final macro research project on whether the US yield curve predicts Hang Seng Index returns.
 
