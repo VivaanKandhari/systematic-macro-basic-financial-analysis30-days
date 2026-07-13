@@ -34,5 +34,6 @@ pip install -r requirements.txt
 - [x] Day 16: Autocorrelation - Does the Past Predict the Future?
 - [x] Day 17: Moving Averages & Trend Following
 - [x] Day 18: GARCH Volatility Forecaster
+- [X] Day 19: Cointegration
 
 Future days will be added after each lesson is completed.

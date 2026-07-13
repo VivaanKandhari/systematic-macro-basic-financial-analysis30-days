@@ -10,22 +10,35 @@ from statsmodels.tsa.stattools import coint, adfuller
 # Day 19 Mini Project: HK Cointegration Explorer
 # ------------------------------------------------------------
 # Research question:
-# Do related HK/global market pairs share a long-run relationship?
+# Do related HK / China / global market assets share a long-run relationship?
 #
-# We test cointegration between:
-# - HSI vs S&P 500
-# - HSI vs Hang Seng Tech Index
-# - USD/CNH vs USD/HKD, if data works
+# Cointegration idea:
+# Two price series can each be non-stationary, but if:
 #
-# Cointegration is useful because a cointegrated spread may mean-revert.
+#     spread = Y - beta * X
+#
+# is stationary / mean-reverting, then the two series are cointegrated.
+#
+# Trading intuition:
+# If spread is unusually high -> short spread
+# If spread is unusually low  -> long spread
 # ------------------------------------------------------------
 
 tickers = {
     "HSI": "^HSI",
     "S&P500": "^GSPC",
-    "HSTECH": "^HSTECH",
+
+    # More reliable Yahoo ETF proxies:
+    # 3033.HK = Hang Seng TECH ETF proxy
+    # 2822.HK = China A50 ETF proxy
+    "HSTECH_ETF": "3033.HK",
+    "China_A50_ETF": "2822.HK",
+
+    # USD/HKD usually downloads more reliably than USD/CNH
     "USD_HKD": "HKD=X",
-    "USD_CNH": "CNH=X",
+
+    # Try USD/CNH alternatives, but these may fail
+    "USD_CNH": "USDCNH=X",
 }
 
 data = yf.download(
@@ -43,208 +56,303 @@ prices = prices.rename(columns=reverse_names)
 print("Downloaded columns:")
 print(prices.columns.tolist())
 
-print("\nNon-missing counts:")
+print("\nNon-missing counts before filtering:")
 print(prices.count())
 
-# Drop columns with too little data.
-# This prevents one broken Yahoo ticker from killing the project.
+# ------------------------------------------------------------
+# Drop broken / low-data columns
+# ------------------------------------------------------------
+# If a ticker has only 0, 1, or very few observations, it is a data issue.
+# We require at least 500 usable prices.
+# ------------------------------------------------------------
+
 min_required_prices = 500
 prices = prices.loc[:, prices.count() >= min_required_prices]
 
-print("\nColumns kept:")
+print("\nColumns kept after filtering:")
 print(prices.columns.tolist())
 
-# ------------------------------------------------------------
-# Use log prices
-# ------------------------------------------------------------
-# Cointegration tests are often run on price levels or log price levels.
-#
-# Log prices are useful because differences in logs approximate returns,
-# and log spreads are easier to interpret proportionally.
-# ------------------------------------------------------------
-
-log_prices = np.log(prices).dropna(how="all")
+print("\nNon-missing counts after filtering:")
+print(prices.count())
 
 # ------------------------------------------------------------
-# Pair list
+# Candidate pairs
+# ------------------------------------------------------------
+# We only keep pairs where both assets survived the data filter.
 # ------------------------------------------------------------
 
 candidate_pairs = [
     ("HSI", "S&P500"),
-    ("HSI", "HSTECH"),
+    ("HSI", "HSTECH_ETF"),
+    ("HSI", "China_A50_ETF"),
+    ("HSTECH_ETF", "China_A50_ETF"),
+    ("USD_HKD", "HSI"),
     ("USD_CNH", "USD_HKD"),
 ]
 
 available_pairs = [
     pair for pair in candidate_pairs
-    if pair[0] in log_prices.columns and pair[1] in log_prices.columns
+    if pair[0] in prices.columns and pair[1] in prices.columns
 ]
 
-print("\nPairs tested:")
-print(available_pairs)
+print("\nAvailable pairs to test:")
+for pair in available_pairs:
+    print(pair)
+
+if len(available_pairs) == 0:
+    raise ValueError("No usable pairs available. Check ticker downloads.")
 
 # ------------------------------------------------------------
-# Helper: run cointegration analysis
+# Helper: ADF stationarity test
+# ------------------------------------------------------------
+# ADF null hypothesis:
+# The series is non-stationary.
+#
+# p-value < 0.05:
+# Reject non-stationarity -> likely stationary.
+# ------------------------------------------------------------
+
+def adf_pvalue(series):
+    return adfuller(series.dropna())[1]
+
+# ------------------------------------------------------------
+# Helper: estimate spread
+# ------------------------------------------------------------
+# We regress:
+#
+#     Y = alpha + beta * X + error
+#
+# Then:
+#
+#     spread = Y - beta * X
+#
+# If spread is stationary, X and Y may be cointegrated.
+# ------------------------------------------------------------
+
+def estimate_spread(y, x):
+    aligned = pd.concat([y, x], axis=1).dropna()
+    aligned.columns = ["Y", "X"]
+
+    Y = aligned["Y"]
+    X = sm.add_constant(aligned["X"])
+
+    model = sm.OLS(Y, X).fit()
+
+    alpha = model.params["const"]
+    beta = model.params["X"]
+
+    spread = Y - beta * aligned["X"]
+
+    return spread, alpha, beta, model.rsquared
+
+# ------------------------------------------------------------
+# Cointegration tests
 # ------------------------------------------------------------
 # Engle-Granger cointegration test:
 #
 # Null hypothesis:
 # No cointegration.
 #
-# Alternative:
-# Cointegration exists.
-#
 # p-value < 0.05:
-# Evidence of cointegration.
-#
-# Hedge ratio:
-# Estimated by regressing Asset A on Asset B.
-#
-# spread = Asset A - hedge_ratio * Asset B
-#
-# If spread is stationary, it may mean-revert.
+# Evidence that the pair is cointegrated.
 # ------------------------------------------------------------
-
-def analyze_pair(asset_a, asset_b):
-    pair_data = log_prices[[asset_a, asset_b]].dropna()
-
-    y = pair_data[asset_a]
-    x = pair_data[asset_b]
-
-    # Engle-Granger test
-    score, p_value, critical_values = coint(y, x)
-
-    # Estimate hedge ratio with OLS
-    x_const = sm.add_constant(x)
-    hedge_model = sm.OLS(y, x_const).fit()
-
-    alpha = hedge_model.params["const"]
-    hedge_ratio = hedge_model.params[asset_b]
-
-    spread = y - (alpha + hedge_ratio * x)
-
-    # Test whether spread is stationary
-    adf_result = adfuller(spread.dropna())
-    spread_adf_p = adf_result[1]
-
-    # Spread z-score
-    spread_mean = spread.mean()
-    spread_std = spread.std()
-    zscore = (spread - spread_mean) / spread_std
-
-    return {
-        "asset_a": asset_a,
-        "asset_b": asset_b,
-        "observations": len(pair_data),
-        "coint_p_value": p_value,
-        "hedge_ratio": hedge_ratio,
-        "spread_adf_p_value": spread_adf_p,
-        "spread": spread,
-        "zscore": zscore,
-    }
 
 results = []
 
-for asset_a, asset_b in available_pairs:
-    result = analyze_pair(asset_a, asset_b)
-    results.append(result)
+spreads = {}
 
-# ------------------------------------------------------------
-# Summary table
-# ------------------------------------------------------------
+for y_name, x_name in available_pairs:
+    pair_prices = prices[[y_name, x_name]].dropna()
 
-summary_rows = []
+    y = pair_prices[y_name]
+    x = pair_prices[x_name]
 
-for result in results:
-    summary_rows.append({
-        "Pair": f"{result['asset_a']} vs {result['asset_b']}",
-        "Observations": result["observations"],
-        "Cointegration p-value": result["coint_p_value"],
-        "Hedge Ratio": result["hedge_ratio"],
-        "Spread ADF p-value": result["spread_adf_p_value"],
-        "Cointegrated at 5%": result["coint_p_value"] < 0.05,
+    coint_stat, coint_pvalue, critical_values = coint(y, x)
+
+    spread, alpha, beta, regression_r2 = estimate_spread(y, x)
+    spread_adf_pvalue = adf_pvalue(spread)
+
+    results.append({
+        "Y": y_name,
+        "X": x_name,
+        "Cointegration p-value": coint_pvalue,
+        "Spread ADF p-value": spread_adf_pvalue,
+        "Beta / hedge ratio": beta,
+        "Regression R2": regression_r2,
+        "Cointegrated at 5%": coint_pvalue < 0.05,
+        "Spread stationary at 5%": spread_adf_pvalue < 0.05,
     })
 
-summary = pd.DataFrame(summary_rows)
+    spreads[(y_name, x_name)] = spread
 
-display_summary = summary.copy()
-display_summary["Cointegration p-value"] = display_summary["Cointegration p-value"].map(lambda x: f"{x:.4f}")
-display_summary["Hedge Ratio"] = display_summary["Hedge Ratio"].map(lambda x: f"{x:.4f}")
-display_summary["Spread ADF p-value"] = display_summary["Spread ADF p-value"].map(lambda x: f"{x:.4f}")
+results = pd.DataFrame(results)
 
-print("\nCointegration Summary")
-print(display_summary.to_string(index=False))
+display_results = results.copy()
+display_results["Cointegration p-value"] = display_results["Cointegration p-value"].map(lambda x: f"{x:.4f}")
+display_results["Spread ADF p-value"] = display_results["Spread ADF p-value"].map(lambda x: f"{x:.4f}")
+display_results["Beta / hedge ratio"] = display_results["Beta / hedge ratio"].map(lambda x: f"{x:.4f}")
+display_results["Regression R2"] = display_results["Regression R2"].map(lambda x: f"{x:.2%}")
 
-# ------------------------------------------------------------
-# Plot spreads and z-scores
-# ------------------------------------------------------------
-
-for result in results:
-    pair_name = f"{result['asset_a']} vs {result['asset_b']}"
-    spread = result["spread"]
-    zscore = result["zscore"]
-
-    fig, axes = plt.subplots(2, 1, figsize=(14, 8), sharex=True)
-
-    axes[0].plot(spread)
-    axes[0].axhline(spread.mean(), color="black", linewidth=1, label="Mean")
-    axes[0].set_title(f"Spread: {pair_name}")
-    axes[0].legend()
-    axes[0].grid(True)
-
-    axes[1].plot(zscore, label="Spread z-score")
-    axes[1].axhline(2, color="red", linestyle="--", label="+2")
-    axes[1].axhline(-2, color="green", linestyle="--", label="-2")
-    axes[1].axhline(0, color="black", linewidth=1)
-    axes[1].set_title(f"Z-Score: {pair_name}")
-    axes[1].legend()
-    axes[1].grid(True)
-
-    plt.tight_layout()
-    plt.show()
+print("\nCointegration Test Results")
+print(display_results.to_string(index=False))
 
 # ------------------------------------------------------------
-# Simple mean-reversion signal count
+# Pick best pair
 # ------------------------------------------------------------
-# If z-score > +2:
+# We choose the pair with the lowest cointegration p-value.
+# This does NOT automatically mean trade it.
+# It just gives us the most promising pair from this set.
+# ------------------------------------------------------------
+
+best_row = results.sort_values("Cointegration p-value").iloc[0]
+
+best_y = best_row["Y"]
+best_x = best_row["X"]
+best_pair = (best_y, best_x)
+
+print("\nMost promising pair by cointegration p-value:")
+print(f"Y: {best_y}")
+print(f"X: {best_x}")
+print(f"Cointegration p-value: {best_row['Cointegration p-value']:.4f}")
+print(f"Beta / hedge ratio: {best_row['Beta / hedge ratio']:.4f}")
+
+spread = spreads[best_pair].dropna()
+
+# ------------------------------------------------------------
+# Spread z-score
+# ------------------------------------------------------------
+# z-score tells us how abnormal the spread is.
+#
+# z = (current spread - average spread) / spread standard deviation
+#
+# z-score = 0:
+# spread is normal.
+#
+# z-score > +2:
 # spread is unusually high.
-# Potential signal: short spread.
+#
+# z-score < -2:
+# spread is unusually low.
+# ------------------------------------------------------------
+
+spread_mean = spread.mean()
+spread_std = spread.std()
+
+zscore = (spread - spread_mean) / spread_std
+
+# ------------------------------------------------------------
+# Trading signals
+# ------------------------------------------------------------
+# spread = Y - beta * X
+#
+# If z-score > +2:
+# spread is too high.
+# Y is expensive relative to X.
+# Short spread = short Y, long X.
 #
 # If z-score < -2:
-# spread is unusually low.
-# Potential signal: long spread.
+# spread is too low.
+# Y is cheap relative to X.
+# Long spread = long Y, short X.
 #
-# This does NOT execute a full backtest yet.
-# It just counts signal opportunities.
+# If z-score moves back near 0:
+# spread normalized.
+# Exit.
 # ------------------------------------------------------------
 
-signal_rows = []
+signals = pd.DataFrame(index=zscore.index)
+signals["spread"] = spread
+signals["zscore"] = zscore
 
-for result in results:
-    zscore = result["zscore"]
+signals["signal"] = 0
 
-    long_spread_signals = (zscore < -2).sum()
-    short_spread_signals = (zscore > 2).sum()
+signals.loc[signals["zscore"] > 2, "signal"] = -1
+signals.loc[signals["zscore"] < -2, "signal"] = 1
 
-    signal_rows.append({
-        "Pair": f"{result['asset_a']} vs {result['asset_b']}",
-        "Long spread signals z < -2": long_spread_signals,
-        "Short spread signals z > +2": short_spread_signals,
-        "Total signals": long_spread_signals + short_spread_signals,
-    })
+print("\nSignal counts:")
+print(signals["signal"].value_counts().sort_index())
 
-signals = pd.DataFrame(signal_rows)
+print("\nLatest spread signal:")
+latest_z = signals["zscore"].iloc[-1]
+latest_signal = signals["signal"].iloc[-1]
 
-print("\nMean-Reversion Signal Counts")
-print(signals.to_string(index=False))
+print(f"Latest z-score: {latest_z:.2f}")
+
+if latest_signal == -1:
+    print(f"Signal: SHORT spread -> short {best_y}, long {best_x}")
+elif latest_signal == 1:
+    print(f"Signal: LONG spread -> long {best_y}, short {best_x}")
+else:
+    print("Signal: No trade. Spread is not extreme.")
 
 # ------------------------------------------------------------
-# Interpretation helper
+# Plot prices
+# ------------------------------------------------------------
+
+pair_prices = prices[[best_y, best_x]].dropna()
+
+normalized_prices = pair_prices / pair_prices.iloc[0]
+
+plt.figure(figsize=(14, 6))
+plt.plot(normalized_prices[best_y], label=best_y)
+plt.plot(normalized_prices[best_x], label=best_x)
+
+plt.title(f"Normalized Prices: {best_y} vs {best_x}")
+plt.ylabel("Growth of $1")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# ------------------------------------------------------------
+# Plot spread
+# ------------------------------------------------------------
+
+plt.figure(figsize=(14, 6))
+plt.plot(spread, label="Spread")
+plt.axhline(spread_mean, color="black", linewidth=1, label="Mean")
+plt.axhline(spread_mean + 2 * spread_std, color="red", linestyle="--", label="+2 std")
+plt.axhline(spread_mean - 2 * spread_std, color="green", linestyle="--", label="-2 std")
+
+plt.title(f"Spread: {best_y} - beta * {best_x}")
+plt.ylabel("Spread")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# ------------------------------------------------------------
+# Plot z-score
+# ------------------------------------------------------------
+
+plt.figure(figsize=(14, 6))
+plt.plot(zscore, label="Spread z-score")
+plt.axhline(0, color="black", linewidth=1)
+plt.axhline(2, color="red", linestyle="--", label="+2")
+plt.axhline(-2, color="green", linestyle="--", label="-2")
+
+plt.title(f"Spread Z-Score: {best_y} vs {best_x}")
+plt.ylabel("Z-score")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# ------------------------------------------------------------
+# Final interpretation helper
 # ------------------------------------------------------------
 
 print("\nInterpretation Guide")
-print("Cointegration p-value < 0.05 means evidence of a long-run relationship.")
-print("Spread ADF p-value < 0.05 means the spread appears stationary.")
-print("A stationary spread may support mean-reversion trading.")
-print("But cointegration can break, so this is only a research starting point.")
 
+if best_row["Cointegrated at 5%"]:
+    print("Best pair passes the Engle-Granger cointegration test at 5%.")
+else:
+    print("Best pair does NOT pass the Engle-Granger cointegration test at 5%.")
+
+if best_row["Spread stationary at 5%"]:
+    print("The estimated spread appears stationary by ADF test.")
+else:
+    print("The estimated spread does NOT appear stationary by ADF test.")
+
+print(
+    "\nImportant: A cointegration signal is not automatically a trade. "
+    "You still need transaction costs, liquidity checks, out-of-sample testing, "
+    "and risk controls."
+)
