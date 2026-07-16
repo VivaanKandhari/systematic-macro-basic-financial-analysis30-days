@@ -34,6 +34,24 @@ pip install -r requirements.txt
 - [x] Day 16: Autocorrelation - Does the Past Predict the Future?
 - [x] Day 17: Moving Averages & Trend Following
 - [x] Day 18: GARCH Volatility Forecaster
-- [X] Day 19: Cointegration
+- [x] Day 19: Cointegration
+- [x] Day 20: Regime Detection
+- [x] Day 21: Week 3 Capstone - HSI Time-Series Strategy Diagnostic
 
 Future days will be added after each lesson is completed.
+
+## Completed Weekly Capstones
+
+- Week 1: Distribution profile of Hong Kong markets
+- Week 2: Signal validation framework
+- Week 3: HSI time-series strategy diagnostic
+
+## Week 3 Capstone
+
+The Week 3 capstone notebook combines stationarity, autocorrelation, moving averages, volatility regimes, and strategy diagnostics into one HSI-focused research workflow.
+
+Notebook:
+
+```text
+week_03_time_series_analysis/day_21_week_3_capstone/HSI_Time_Series_Strategy_Diagnostic.ipynb
+```
