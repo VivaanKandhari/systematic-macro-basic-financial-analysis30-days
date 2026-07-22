@@ -37,15 +37,7 @@ pip install -r requirements.txt
 - [x] Day 19: Cointegration
 - [x] Day 20: Regime Detection
 - [x] Day 21: Week 3 Capstone - HSI Time-Series Strategy Diagnostic
-- [x] Day 22: Week 4 Capstone Setup - Data Infrastructure
-- [x] Day 23: Feature Engineering
-- [x] Day 24: Statistical Testing
-- [x] Day 25: Signal Construction & Backtesting
-- [x] Day 26: Risk Analysis
-- [x] Day 27: Alternative Signals & Robustness
-- [x] Day 28: Writeup & GitHub Packaging
-- [x] Day 29: Extensions & Next Steps
-- [x] Day 30: Interview Preparation
+- [x] Day 22 - 30: Final Capstone
 
 ## Completed Weekly Capstones
 
@@ -54,15 +46,6 @@ pip install -r requirements.txt
 - Week 3: HSI time-series strategy diagnostic
 - Week 4: Final capstone - Does the US yield curve predict Hang Seng returns?
 
-## Week 3 Capstone
-
-The Week 3 capstone notebook combines stationarity, autocorrelation, moving averages, volatility regimes, and strategy diagnostics into one HSI-focused research workflow.
-
-Notebook:
-
-```text
-week_03_time_series_analysis/day_21_week_3_capstone/HSI_Time_Series_Strategy_Diagnostic.ipynb
-```
 
 ## Week 4 Final Capstone
 
