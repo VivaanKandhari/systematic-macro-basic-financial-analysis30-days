@@ -37,14 +37,22 @@ pip install -r requirements.txt
 - [x] Day 19: Cointegration
 - [x] Day 20: Regime Detection
 - [x] Day 21: Week 3 Capstone - HSI Time-Series Strategy Diagnostic
-
-Future days will be added after each lesson is completed.
+- [x] Day 22: Week 4 Capstone Setup - Data Infrastructure
+- [x] Day 23: Feature Engineering
+- [x] Day 24: Statistical Testing
+- [x] Day 25: Signal Construction & Backtesting
+- [x] Day 26: Risk Analysis
+- [x] Day 27: Alternative Signals & Robustness
+- [x] Day 28: Writeup & GitHub Packaging
+- [x] Day 29: Extensions & Next Steps
+- [x] Day 30: Interview Preparation
 
 ## Completed Weekly Capstones
 
 - Week 1: Distribution profile of Hong Kong markets
 - Week 2: Signal validation framework
 - Week 3: HSI time-series strategy diagnostic
+- Week 4: Final capstone - Does the US yield curve predict Hang Seng returns?
 
 ## Week 3 Capstone
 
@@ -55,3 +63,25 @@ Notebook:
 ```text
 week_03_time_series_analysis/day_21_week_3_capstone/HSI_Time_Series_Strategy_Diagnostic.ipynb
 ```
+
+## Week 4 Final Capstone
+
+The Week 4 final capstone is a full systematic macro research project testing whether the US yield curve predicts future Hang Seng Index returns.
+
+The project moves from economic hypothesis to data infrastructure, feature engineering, statistical testing, signal construction, backtesting, robustness checks, and final research conclusions.
+
+Notebook:
+
+```text
+week_04_capstone/Does_US_Yield_Curve_Predict_HSI_Returns.ipynb
+```
+
+Project README:
+
+```text
+week_04_capstone/README.md
+```
+
+Main conclusion:
+
+The US yield curve showed limited predictive value for Hang Seng returns as a standalone signal. It was more useful as a macro risk-management filter, improving drawdown and volatility versus buy-and-hold, but the absolute Sharpe ratio remained low.
